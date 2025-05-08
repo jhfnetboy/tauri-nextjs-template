@@ -1,5 +1,67 @@
 # 变更记录
 
+## 版本 0.3.1 - 2024-07-22
+
+### 修复问题和新增功能
+
+1. 修复导航栏中的404链接问题
+   - 创建缺失的`/points`页面，包含OpenPoints社区积分系统界面
+   - 创建缺失的`/shop`页面，包含商店兑换系统界面
+   - 创建缺失的`/reputation`页面，包含声誉系统和排行榜界面
+
+### 修改文件
+
+- `src/app/points/page.tsx`: 新增OpenPoints积分页面
+- `src/app/shop/page.tsx`: 新增商店页面
+- `src/app/reputation/page.tsx`: 新增声誉系统页面
+
+### 初始化与运行指令
+
+```bash
+# 安装依赖
+pnpm install
+
+# 开发模式运行
+pnpm tauri dev
+
+# 构建发布版本
+pnpm tauri build
+```
+
+## 版本 0.3.0 - 2024-07-22
+
+### 新增功能
+
+1. 添加系统硬件信息检测功能
+   - 使用Rust的sysinfo库获取CPU、内存、操作系统信息
+   - 通过Tauri命令将系统信息传递到前端
+
+2. 创建独立的通信演示页面
+   - 将原测试通信功能从主页移至专用的Demo页面
+   - 清理主页代码，保留社区工具的UI部分
+   - 在导航菜单中添加Demo页面链接
+
+### 修改文件
+
+- `src-tauri/src/lib.rs`: 添加`get_hardware_info`函数及相关结构体
+- `src-tauri/Cargo.toml`: 添加sysinfo库依赖
+- `src/app/demo/page.tsx`: 创建新的演示页面展示通信方式
+- `src/app/page.tsx`: 移除测试通信功能代码
+- `src/app/layout.tsx`: 添加Demo页面的导航链接
+
+### 初始化与运行指令
+
+```bash
+# 安装依赖
+pnpm install
+
+# 开发模式运行
+pnpm tauri dev
+
+# 构建发布版本
+pnpm tauri build
+```
+
 ## 版本 0.1.3 - 2024-07-22
 
 ### 修复问题

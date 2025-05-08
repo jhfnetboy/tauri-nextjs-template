@@ -10,6 +10,50 @@ fn greet() -> String {
   format!("Hello world from Rust! Current epoch: {}", epoch_ms)
 }
 
+// 添加获取硬件配置的函数
+#[derive(serde::Serialize)]
+struct HardwareInfo {
+  cpu: String,
+  memory_total: u64,  // 总内存(MB)
+  memory_free: u64,   // 可用内存(MB)
+  operating_system: String,
+  hostname: String,
+  cores: u32,         // CPU核心数
+}
+
+#[tauri::command]
+fn get_hardware_info() -> Result<HardwareInfo, String> {
+  // 使用sysinfo库获取系统信息
+  let mut sys = sysinfo::System::new_all();
+  sys.refresh_all();
+  
+  // 获取CPU信息
+  let cpu_info = match sys.cpus().first() {
+    Some(cpu) => cpu.brand().to_string(),
+    None => "Unknown CPU".to_string(),
+  };
+  
+  // 获取内存信息(转换为MB)
+  let memory_total = sys.total_memory() / 1024;
+  let memory_free = sys.free_memory() / 1024;
+  
+  // 获取操作系统和主机名
+  let os_info = format!("{} {}", sys.name().unwrap_or_default(), sys.os_version().unwrap_or_default());
+  let hostname = sys.host_name().unwrap_or_else(|| "Unknown".to_string());
+  
+  // 获取CPU核心数
+  let cores = sys.cpus().len() as u32;
+  
+  Ok(HardwareInfo {
+    cpu: cpu_info,
+    memory_total,
+    memory_free,
+    operating_system: os_info,
+    hostname,
+    cores,
+  })
+}
+
 struct Database;
 
 #[derive(serde::Serialize)]
@@ -99,7 +143,7 @@ pub fn run() {
   tauri::Builder::default()
     .plugin(tauri_plugin_opener::init())
     .manage(Database {})
-    .invoke_handler(tauri::generate_handler![greet, calculate, start_process_monitoring])
+    .invoke_handler(tauri::generate_handler![greet, calculate, start_process_monitoring, get_hardware_info])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

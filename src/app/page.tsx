@@ -1,254 +1,164 @@
 "use client";
 import { RoundedButton } from "@/components/RoundedButton";
-import { invoke } from "@tauri-apps/api/core";
-import { listen, once } from "@tauri-apps/api/event";
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
-
-interface CalculationResult {
-  result: number;
-  timestamp: number;
-  description: string;
-}
-
-interface ProcessStatus {
-  id: number;
-  memory_usage: number;
-  cpu_usage: number;
-  timestamp: number;
-}
+import { useCallback } from "react";
+import Link from "next/link";
 
 export default function Home() {
-  const [greeted, setGreeted] = useState<string | null>(null);
-  const [firstNumber, setFirstNumber] = useState<number>(0);
-  const [secondNumber, setSecondNumber] = useState<number>(0);
-  const [operation, setOperation] = useState<string>("add");
-  const [calculationResult, setCalculationResult] = useState<CalculationResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [processStatuses, setProcessStatuses] = useState<ProcessStatus[]>([]);
-  const [isMonitoring, setIsMonitoring] = useState<boolean>(false);
-  
-  const greet = useCallback((): void => {
-    invoke<string>("greet")
-      .then((s) => {
-        setGreeted(s);
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
-  }, []);
-
-  const performCalculation = useCallback((): void => {
-    setError(null);
-    invoke<CalculationResult>("calculate", {
-      a: firstNumber,
-      b: secondNumber,
-      operation: operation,
-    })
-      .then((result) => {
-        setCalculationResult(result);
-      })
-      .catch((err: unknown) => {
-        if (typeof err === "string") {
-          setError(err);
-        } else {
-          setError("An unknown error occurred");
-        }
-        console.error(err);
-      });
-  }, [firstNumber, secondNumber, operation]);
-  
-  const startMonitoring = useCallback((): void => {
-    // 重置状态
-    setProcessStatuses([]);
-    setIsMonitoring(true);
-    
-    // 调用Rust命令开始后台监控
-    invoke("start_process_monitoring")
-      .catch((err: unknown) => {
-        console.error("Failed to start monitoring:", err);
-        setIsMonitoring(false);
-      });
-  }, []);
-  
-  // 设置事件监听器
-  useEffect(() => {
-    // 清除之前的状态
-    setProcessStatuses([]);
-    
-    const unlisten = listen<ProcessStatus>("process-status", (event) => {
-      setProcessStatuses((current) => {
-        const newStatuses = [...current, event.payload];
-        // 只保留最近的5个状态
-        if (newStatuses.length > 5) {
-          return newStatuses.slice(newStatuses.length - 5);
-        }
-        return newStatuses;
-      });
-    });
-    
-    // 当事件接收到10次后，监听完成
-    once("window-process-status", () => {
-      // 这只是一个演示，实际上我们会在接收到某个特定事件时停止监控
-      console.log("Received window-specific event");
-    });
-    
-    return () => {
-      // 在组件卸载时取消监听
-      unlisten.then(unlistenFn => unlistenFn());
-    };
+  // 模拟登录功能
+  const handleLogin = useCallback((): void => {
+    // 这里实际应该调用 Tauri API 进行登录认证
+    console.log("Login clicked");
   }, []);
 
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        
-        <h1 className="text-2xl font-bold">Tauri + Next.js Demo</h1>
-        
-        <div className="flex flex-col gap-4 items-start">
-          <h2 className="text-xl font-semibold">Basic Greeting</h2>
-          <RoundedButton
-            onClick={greet}
-            title="Call &quot;greet&quot; from Rust"
-          />
-          <p className="break-words w-md">
-            {greeted ?? "Click the button to call the Rust function"}
+    <div className="container mx-auto px-4 py-8">
+      <section className="flex flex-col md:flex-row gap-8 items-center mb-16">
+        <div className="flex-1">
+          <h1 className="text-4xl font-bold mb-4">欢迎使用 COS72 社区工具</h1>
+          <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
+            COS72 是一个简单的社区工具，任何产品或商业都可以建立自己的社区，内嵌常用功能。
+            通过这个平台，您可以连接用户、激励参与并建立忠诚度。
           </p>
+          <div className="flex gap-4">
+            <RoundedButton 
+              onClick={handleLogin} 
+              title="登录/注册" 
+              disabled={false}
+            />
+            <Link href="/onboarding">
+              <span className="m-4 max-w-xs rounded-xl border border-gray-200 p-6 text-left text-inherit transition-colors hover:border-blue-600 hover:text-blue-600 focus:border-blue-600 focus:text-blue-600 active:border-blue-600 active:text-blue-600 cursor-pointer rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44">
+                了解更多
+              </span>
+            </Link>
+          </div>
         </div>
-        
-        <div className="flex flex-col gap-4 items-start mt-8 p-6 border rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold">Calculator Demo</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            This demonstrates a more complex Rust function call with parameters and structured return data
-          </p>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-            <div>
-              <label className="block text-sm font-medium mb-1">First Number</label>
-              <input
-                type="number"
-                value={firstNumber}
-                onChange={(e) => setFirstNumber(Number(e.target.value))}
-                className="w-full px-3 py-2 border rounded-md"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-1">Second Number</label>
-              <input
-                type="number"
-                value={secondNumber}
-                onChange={(e) => setSecondNumber(Number(e.target.value))}
-                className="w-full px-3 py-2 border rounded-md"
-              />
+        <div className="flex-1">
+          <div className="relative w-full h-[300px] md:h-[400px] bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+            {/* 这里可以放置社区工具的示意图或标志 */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-5xl font-bold text-gray-300 dark:text-gray-600">COS72</div>
             </div>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-1">Operation</label>
-            <select
-              value={operation}
-              onChange={(e) => setOperation(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md"
-            >
-              <option value="add">Add (+)</option>
-              <option value="subtract">Subtract (-)</option>
-              <option value="multiply">Multiply (×)</option>
-              <option value="divide">Divide (÷)</option>
-            </select>
-          </div>
-          
-          <RoundedButton
-            onClick={performCalculation}
-            title="Calculate"
-          />
-          
-          {error && (
-            <div className="mt-2 p-3 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-md">
-              {error}
-            </div>
-          )}
-          
-          {calculationResult && (
-            <div className="mt-2 p-4 bg-gray-100 dark:bg-gray-800 rounded-md w-full">
-              <p><span className="font-medium">Result:</span> {calculationResult.result}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{calculationResult.description}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-                Timestamp: {new Date(calculationResult.timestamp).toLocaleString()}
-              </p>
-            </div>
-          )}
         </div>
-        
-        <div className="flex flex-col gap-4 items-start mt-8 p-6 border rounded-lg shadow-sm w-full">
-          <h2 className="text-xl font-semibold">Event System Demo</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            This demonstrates the Tauri event system where Rust can send events to the frontend
-          </p>
-          
-          <RoundedButton
-            onClick={startMonitoring}
-            title={isMonitoring ? "Monitoring..." : "Start Process Monitoring"}
-            disabled={isMonitoring}
-          />
-          
-          <div className="mt-4 w-full">
-            <h3 className="text-lg font-medium mb-2">Process Status Events</h3>
-            {processStatuses.length === 0 ? (
-              <p className="text-gray-500 dark:text-gray-400">No events received yet. Click the button to start.</p>
-            ) : (
-              <div className="space-y-2">
-                {processStatuses.map((status) => (
-                  <div key={status.id} className="p-3 bg-gray-100 dark:bg-gray-800 rounded-md">
-                    <div className="flex justify-between">
-                      <span className="font-medium">Event #{status.id}</span>
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {new Date(status.timestamp).toLocaleTimeString()}
-                      </span>
-                    </div>
-                    <div className="mt-1 grid grid-cols-2 gap-2">
-                      <div>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Memory: </span>
-                        <span>{status.memory_usage} MB</span>
-                      </div>
-                      <div>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">CPU: </span>
-                        <span>{(status.cpu_usage * 100).toFixed(1)}%</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+      </section>
+
+      <section className="mb-16">
+        <h2 className="text-2xl font-bold mb-6 text-center">主要功能</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {features.map((feature) => (
+            <div key={feature.title} className="border p-6 rounded-lg">
+              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full mb-4 flex items-center justify-center">
+                <span className="text-blue-600 dark:text-blue-300 text-xl">{feature.icon}</span>
               </div>
-            )}
+              <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+              <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mb-16">
+        <h2 className="text-2xl font-bold mb-6">如何使用</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <ol className="list-decimal pl-6 space-y-4">
+              <li className="text-lg">克隆后初始化配置</li>
+              <li className="text-lg">一键完成后网址部署（github pages或者netlify或者其他）</li>
+              <li className="text-lg">创建社区，开始使用</li>
+              <li className="text-lg">通过管理界面设置社区基础信息和合约</li>
+              <li className="text-lg">邀请用户加入并开始互动</li>
+            </ol>
+          </div>
+          <div className="border p-6 rounded-lg bg-gray-50 dark:bg-gray-900">
+            <h3 className="text-xl font-semibold mb-3">最近活动</h3>
+            <div className="space-y-4">
+              {activities.map((activity) => (
+                <div key={activity.id} className="border-b pb-2">
+                  <p className="font-medium">{activity.action}</p>
+                  <div className="flex justify-between text-sm text-gray-500">
+                    <span>{activity.user}</span>
+                    <span>{activity.time}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </main>
-      
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://v2.tauri.app/develop/calling-rust/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Tauri Documentation
-        </a>
-      </footer>
+      </section>
+
+      <section className="text-center">
+        <h2 className="text-2xl font-bold mb-4">准备好开始了吗？</h2>
+        <p className="max-w-2xl mx-auto mb-6">
+          加入 COS72，创建您自己的社区，激励用户参与并建立一个充满活力的生态系统。
+        </p>
+        <RoundedButton 
+          onClick={handleLogin} 
+          title="立即开始"
+          disabled={false}
+        />
+      </section>
     </div>
   );
 }
+
+// 模拟数据
+const features = [
+  {
+    icon: "🚀",
+    title: "Onboarding",
+    description: "新用户/未登录用户可见，注册后获得Gas Card，有reputation后领取SBT"
+  },
+  {
+    icon: "💰",
+    title: "OpenPNTs/OpenCards",
+    description: "发行积分和建立白卡，其他社区有reputation的可获得积分赞助"
+  },
+  {
+    icon: "✅",
+    title: "Tasks",
+    description: "合约交互，完成任务获得积分和reputation"
+  },
+  {
+    icon: "🛒",
+    title: "Shops",
+    description: "管理员上传服务和商品，成员用积分兑换商品、服务和优惠券"
+  },
+  {
+    icon: "🏆",
+    title: "Reputation Rank",
+    description: "依靠完成任务获得reputation，有nft和权重积分"
+  },
+  {
+    icon: "🏠",
+    title: "Homepage",
+    description: "指向单页面介绍，默认是首页，可设置背景图片"
+  }
+];
+
+const activities = [
+  {
+    id: 1,
+    user: "User123",
+    action: "完成了\"社区推广\"任务",
+    time: "2小时前"
+  },
+  {
+    id: 2,
+    user: "Community456",
+    action: "发布了新的社区奖励",
+    time: "5小时前"
+  },
+  {
+    id: 3,
+    user: "Developer789",
+    action: "获得了 'Web3 贡献者' SBT",
+    time: "1天前"
+  },
+  {
+    id: 4,
+    user: "Admin001",
+    action: "更新了社区规则",
+    time: "2天前"
+  }
+];

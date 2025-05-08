@@ -38,8 +38,8 @@ fn get_hardware_info() -> Result<HardwareInfo, String> {
   let memory_free = sys.free_memory() / 1024;
   
   // 获取操作系统和主机名
-  let os_info = format!("{} {}", sys.name().unwrap_or_default(), sys.os_version().unwrap_or_default());
-  let hostname = sys.host_name().unwrap_or_else(|| "Unknown".to_string());
+  let os_info = format!("{} {}", sysinfo::System::name().unwrap_or_default(), sysinfo::System::os_version().unwrap_or_default());
+  let hostname = sysinfo::System::host_name().unwrap_or_else(|| "Unknown".to_string());
   
   // 获取CPU核心数
   let cores = sys.cpus().len() as u32;

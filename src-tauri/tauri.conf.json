@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "tauri-nextjs-template",
+  "productName": "COS72-tauri",
   "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "com.COS72-tauri.dev",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:3000",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "tauri-nextjs-template",
+        "title": "COS72 - Empower Community！",
         "width": 800,
         "height": 600,
         "resizable": true,

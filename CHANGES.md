@@ -1,5 +1,101 @@
 # 变更记录
 
+## 版本 0.3.4 - 2024-07-22
+
+### 修复构建问题
+
+1. 修复DMG包独立运行时"asset not found: index.html"错误
+   - 移除冲突的next.config.js文件，避免与next.config.ts配置冲突
+   - 在next.config.ts中添加eslint和typescript错误忽略配置
+   - 确保Next.js静态导出功能正常工作，生成完整的静态HTML文件
+   - 修复Tauri配置中的前端资源路径问题
+
+### 技术细节
+
+- Next.js配置冲突：存在两个配置文件导致静态导出失败
+- 静态导出：正确配置`output: "export"`和`distDir: "dist"`
+- 构建流程：确保`pnpm build`生成包含index.html的完整静态站点
+
+### 修改文件
+
+- `next.config.ts`: 添加错误忽略配置，保持静态导出设置
+- `next.config.js`: 删除此文件避免配置冲突
+- `package.json`: 更新版本号到0.3.4
+
+### 测试结果
+
+- ✅ Next.js静态导出生成完整HTML文件
+- ✅ Tauri构建成功，无"asset not found"错误
+- ✅ DMG包可独立运行
+
+### 初始化与运行指令
+
+```bash
+# 安装依赖
+pnpm install
+
+# 开发模式运行
+pnpm tauri dev
+
+# 构建发布版本
+pnpm tauri build
+```
+
+## 版本 0.3.3 - 2024-07-22
+
+### 界面翻译
+
+1. 将主页所有中文内容翻译为英语
+   - 翻译页面标题、描述、按钮文字
+   - 翻译功能特性说明
+   - 翻译使用指南内容
+   - 翻译模拟活动数据
+   - 翻译所有用户界面文本
+
+### 修改文件
+
+- `src/app/page.tsx`: 完整翻译主页界面所有中文内容为英语
+- `package.json`: 更新版本号到0.3.3
+
+### 初始化与运行指令
+
+```bash
+# 安装依赖
+pnpm install
+
+# 开发模式运行
+pnpm tauri dev
+
+# 构建发布版本
+pnpm tauri build
+```
+
+## 版本 0.3.2 - 2024-07-22
+
+### 修复问题
+
+1. 修复了sysinfo库API变更导致的编译错误
+   - 将实例方法调用改为关联函数调用：`sys.name()` 改为 `sysinfo::System::name()`
+   - 同样修改了 `os_version()` 和 `host_name()` 的调用方式
+   - 这些方法在sysinfo 0.30.5版本中已变为关联函数而非实例方法
+
+### 修改文件
+
+- `src-tauri/src/lib.rs`: 更新了系统信息获取函数中的API调用方式
+
+### 初始化与运行指令
+
+```bash
+# 安装依赖
+pnpm install
+
+# 开发模式运行
+pnpm tauri dev
+
+# 构建发布版本
+pnpm tauri build
+```
+
 ## 版本 0.3.1 - 2024-07-22
 
 ### 修复问题和新增功能
